@@ -1,8 +1,8 @@
 package com.samara.otrs.controller;
 
+import com.samara.otrs.model.Chamado;
 import com.samara.otrs.dto.ChamadoRequestDTO;
 import com.samara.otrs.dto.ChamadoResponseDTO;
-import com.samara.otrs.model.Chamado;
 import com.samara.otrs.repository.ChamadoRepository;
 import com.samara.otrs.repository.UserRepository;
 import com.samara.otrs.model.User;
@@ -14,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -135,12 +137,12 @@ public ResponseEntity<List<ChamadoResponseDTO>> listarChamados() {
         ChamadoResponseDTO dto = new ChamadoResponseDTO();
 
         dto.setId(chamado.getId());
-        dto.setNomeUsuario(chamado.getUsuario().getNome()); // quem abriu
+        dto.setNomeUsuario(chamado.getUsuario().getName()); // quem abriu
         dto.setDataCriacao(chamado.getDataCriacao());
         dto.setCategoria(chamado.getCategoria());
         dto.setSubcategoria(chamado.getSubcategoria());
         dto.setDescricao(chamado.getDescricao());
-        dto.setIp(chamado.getIp()); // se você estiver salvando
+        dto.setIp(chamado.getIpOrigem()); // se você estiver salvando
         dto.setStatus(chamado.getStatus());
 
         // calcula SLA em tempo real
@@ -151,7 +153,7 @@ public ResponseEntity<List<ChamadoResponseDTO>> listarChamados() {
         dto.setCargo(chamado.getCargo());
         dto.setCarteira(chamado.getCarteira());
         dto.setNomeFuncionario(chamado.getNomeFuncionario());
-        dto.setCaminhoDoPrint(chamado.getCaminhoDoPrint());
+        dto.setCaminhoDoPrint(chamado.getEvidenciasBase64());
 
         return dto;
     }).collect(Collectors.toList());
@@ -159,5 +161,14 @@ public ResponseEntity<List<ChamadoResponseDTO>> listarChamados() {
     return ResponseEntity.ok(response);
 }
 
+@GetMapping("/{id}")
+public ResponseEntity<Chamado> buscarChamadoPorId(@PathVariable Long id) {
+    Optional<Chamado> chamadoOptional = chamadoRepository.findById(id);
+    if (chamadoOptional.isPresent()) {
+        return ResponseEntity.ok(chamadoOptional.get());
+    } else {
+        return ResponseEntity.notFound().build();
+    }
+}
 
 }

@@ -51,4 +51,6 @@ public class Chamado {
     private String resumoResolucao;
     private boolean houveTroca; // se hardware
     private String tipoEquipamento; // "Novo" ou "Usado"
+    private String caminhoDoPrint;
+    
 }

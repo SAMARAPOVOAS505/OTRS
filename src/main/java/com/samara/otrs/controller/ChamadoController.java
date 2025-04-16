@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chamados")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class ChamadoController {
 
     @Autowired
@@ -51,24 +51,28 @@ public ResponseEntity<List<Chamado>> listarPorUsuario(@PathVariable Long userId)
 }
 
 
-    @PutMapping("/{id}")
-    public Chamado atualizarChamado(@PathVariable Long id, @RequestBody Chamado atualizado) {
-        Chamado chamado = chamadoRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));
-    
-        if (atualizado.getStatus() != null) {
-            chamado.setStatus(atualizado.getStatus());
-        }
-    
-        if (atualizado.getDescricao() != null) {
-            chamado.setDescricao(atualizado.getDescricao());
-        }
-    
-        chamado.setDataAtualizacao(LocalDateTime.now());
-    
-        return chamadoRepository.save(chamado);
-    }
+@PutMapping("/{id}")
+public ResponseEntity<Chamado> atualizarChamado(@PathVariable Long id, @RequestBody Chamado chamadoAtualizado) {
+    Optional<Chamado> optionalChamado = chamadoRepository.findById(id);
 
+    if (optionalChamado.isPresent()) {
+        Chamado chamadoExistente = optionalChamado.get();
+        chamadoExistente.setDescricao(chamadoAtualizado.getDescricao());
+        chamadoExistente.setStatus(chamadoAtualizado.getStatus());
+        chamadoExistente.setCaminhoDoPrint(chamadoAtualizado.getCaminhoDoPrint());
+        chamadoExistente.setUsuario(chamadoAtualizado.getUsuario());
+        chamadoExistente.setDataAtualizacao(LocalDateTime.now()); // opcional, mas legal registrar
+
+        chamadoRepository.save(chamadoExistente);
+        return ResponseEntity.ok(chamadoExistente);
+    } else {
+        return ResponseEntity.notFound().build();
+    }
+}
+
+
+
+   
     @DeleteMapping("/{id}")
 public void deletarChamado(@PathVariable Long id) {
     chamadoRepository.deleteById(id);
@@ -170,5 +174,6 @@ public ResponseEntity<Chamado> buscarChamadoPorId(@PathVariable Long id) {
         return ResponseEntity.notFound().build();
     }
 }
+
 
 }
